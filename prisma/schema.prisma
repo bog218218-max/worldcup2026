@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MatchStatus {
+  scheduled
+  live
+  finished
+}
+
+enum PredictionResultType {
+  pending
+  exact
+  difference
+  outcome
+  miss
+}
+
+model User {
+  id           String       @id @default(cuid())
+  telegramId   String       @unique
+  displayName  String
+  slug         String       @unique
+  avatarEmoji  String       @default("⚽")
+  isAdmin      Boolean      @default(false)
+  isPaid       Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  predictions  Prediction[]
+  payment      Payment?
+
+  @@index([slug])
+  @@index([isPaid])
+}
+
+model Match {
+  id          String       @id @default(cuid())
+  homeTeam    String
+  awayTeam    String
+  homeFlag    String
+  awayFlag    String
+  kickoffTime DateTime
+  stage       String
+  status      MatchStatus  @default(scheduled)
+  homeScore   Int?
+  awayScore   Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  predictions Prediction[]
+
+  @@index([kickoffTime])
+  @@index([status])
+}
+
+model Prediction {
+  id         String               @id @default(cuid())
+  userId     String
+  matchId    String
+  predHome   Int
+  predAway   Int
+  points     Int                  @default(0)
+  resultType PredictionResultType @default(pending)
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  lockedAt   DateTime?
+  match      Match                @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+  @@index([userId])
+  @@index([resultType])
+}
+
+model PrizeConfig {
+  id          String   @id @default(cuid())
+  title       String
+  type        String
+  percentage  Int?
+  fixedAmount Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payment {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  amount    Int       @default(1000)
+  isPaid    Boolean   @default(false)
+  paidAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
