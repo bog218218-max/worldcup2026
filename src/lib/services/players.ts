@@ -10,6 +10,8 @@ export async function getPlayers() {
     displayName: row.displayName,
     slug: row.slug,
     avatarEmoji: row.avatarEmoji,
+    avatarUrl: row.avatarUrl,
+    telegramUsername: row.telegramUsername,
     isPaid: row.isPaid,
     points: row.points,
     exact: row.exact,

@@ -55,8 +55,17 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                 </td>
                 <td>
                   <Link href={`/player/${row.slug}`} className="focus-ring flex items-center gap-2 rounded-sm">
-                    <span>{row.avatarEmoji}</span>
-                    <span className="font-medium">{row.displayName}</span>
+                    {row.avatarUrl ? (
+                      <img src={row.avatarUrl} alt={row.displayName} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <span className="text-xl">{row.avatarEmoji}</span>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="font-medium leading-tight">{row.displayName}</span>
+                      {row.telegramUsername && (
+                        <span className="text-xs text-[var(--muted)]">@{row.telegramUsername}</span>
+                      )}
+                    </div>
                     {row.rank <= 3 ? <Badge value="призовая зона" tone="prize" /> : null}
                   </Link>
                 </td>
@@ -115,8 +124,17 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span>{row.avatarEmoji}</span>
-                    <span className="truncate font-semibold">{row.displayName}</span>
+                    {row.avatarUrl ? (
+                      <img src={row.avatarUrl} alt={row.displayName} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <span className="text-xl">{row.avatarEmoji}</span>
+                    )}
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate font-semibold leading-tight">{row.displayName}</span>
+                      {row.telegramUsername && (
+                        <span className="text-xs text-[var(--muted)] truncate">@{row.telegramUsername}</span>
+                      )}
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-[var(--muted)]">
                     {row.exact} точных, {percent(row.outcomeAccuracy)} исходов

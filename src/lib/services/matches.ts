@@ -39,6 +39,8 @@ export async function getMatchStats(matchId: string) {
               displayName: true,
               slug: true,
               avatarEmoji: true,
+              avatarUrl: true,
+              telegramUsername: true,
               isPaid: true
             }
           }

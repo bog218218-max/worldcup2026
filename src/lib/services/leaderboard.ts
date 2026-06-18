@@ -60,6 +60,8 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
       displayName: user.displayName,
       slug: user.slug,
       avatarEmoji: user.avatarEmoji,
+      avatarUrl: user.avatarUrl,
+      telegramUsername: user.telegramUsername,
       isPaid: user.isPaid,
       points: 0,
       predictionsCount: predictions.length,

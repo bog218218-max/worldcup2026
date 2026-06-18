@@ -36,10 +36,19 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           Место #{player.rank}
         </p>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-4xl font-semibold sm:text-5xl">
-            <span className="mr-3">{player.avatarEmoji}</span>
-            {player.displayName}
-          </h1>
+          <div className="flex items-center gap-4">
+            {player.avatarUrl ? (
+              <img src={player.avatarUrl} alt={player.displayName} className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20" />
+            ) : (
+              <span className="text-5xl sm:text-6xl">{player.avatarEmoji}</span>
+            )}
+            <div>
+              <h1 className="text-4xl font-semibold sm:text-5xl">{player.displayName}</h1>
+              {player.telegramUsername && (
+                <p className="mt-1 text-lg text-[var(--muted)]">@{player.telegramUsername}</p>
+              )}
+            </div>
+          </div>
           <span className="text-5xl font-semibold text-[var(--green)]">{player.points}</span>
         </div>
         <div className="mt-5 flex flex-wrap gap-2">

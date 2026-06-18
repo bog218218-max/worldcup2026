@@ -30,9 +30,16 @@ export default async function PlayersPage() {
           >
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-3">
-                <span className="text-3xl">{player.avatarEmoji}</span>
-                <span>
-                  <span className="block font-semibold">{player.displayName}</span>
+                {player.avatarUrl ? (
+                  <img src={player.avatarUrl} alt={player.displayName} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span className="text-3xl shrink-0">{player.avatarEmoji}</span>
+                )}
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate font-semibold leading-tight">{player.displayName}</span>
+                  {player.telegramUsername && (
+                    <span className="truncate text-xs text-[var(--muted)]">@{player.telegramUsername}</span>
+                  )}
                   <span className="text-sm text-[var(--muted)]">место #{player.rank}</span>
                 </span>
               </span>

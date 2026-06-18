@@ -1,3 +1,5 @@
+import fs from "fs/promises";
+import path from "path";
 import { Context, Telegraf } from "telegraf";
 import { isAdminTelegramId } from "@/lib/config";
 import { getPredictionDeadline, isPredictionLocked } from "@/lib/deadline";
@@ -42,16 +44,47 @@ async function ensureUser(ctx: Context) {
   const fallbackName =
     ctx.from?.first_name || ctx.from?.username || `Игрок ${id.slice(-4)}`;
 
+  let avatarUrl: string | undefined;
+  let telegramUsername = ctx.from?.username;
+
+  try {
+    if (ctx.from) {
+      const photos = await ctx.telegram.getUserProfilePhotos(ctx.from.id, 0, 1);
+      if (photos.total_count > 0) {
+        const fileId = photos.photos[0][0].file_id;
+        const fileLink = await ctx.telegram.getFileLink(fileId);
+        
+        const response = await fetch(fileLink.toString());
+        const buffer = await response.arrayBuffer();
+        
+        const avatarsDir = path.join(process.cwd(), "public", "avatars");
+        await fs.mkdir(avatarsDir, { recursive: true });
+        
+        const fileName = `${id}.jpg`;
+        const filePath = path.join(avatarsDir, fileName);
+        await fs.writeFile(filePath, Buffer.from(buffer));
+        
+        avatarUrl = `/avatars/${fileName}?t=${Date.now()}`;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to fetch avatar", err);
+  }
+
   return prisma.user.upsert({
     where: { telegramId: id },
     update: {
-      isAdmin: requireAdmin(id)
+      isAdmin: requireAdmin(id),
+      telegramUsername,
+      ...(avatarUrl && { avatarUrl })
     },
     create: {
       telegramId: id,
       displayName: fallbackName,
       slug: userSlug(fallbackName, id),
-      isAdmin: requireAdmin(id)
+      isAdmin: requireAdmin(id),
+      telegramUsername,
+      avatarUrl
     }
   });
 }

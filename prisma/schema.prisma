@@ -25,9 +25,11 @@ model User {
   id           String       @id @default(cuid())
   telegramId   String       @unique
   displayName  String
-  slug         String       @unique
-  avatarEmoji  String       @default("⚽")
-  isAdmin      Boolean      @default(false)
+  slug             String       @unique
+  avatarEmoji      String       @default("⚽")
+  avatarUrl        String?
+  telegramUsername String?
+  isAdmin          Boolean      @default(false)
   isPaid       Boolean      @default(false)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt

@@ -107,7 +107,19 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 {match.predictions.map((prediction) => (
                   <tr key={prediction.id}>
                     <td className="font-medium">
-                      {prediction.user.avatarEmoji} {prediction.user.displayName}
+                      <div className="flex items-center gap-2">
+                        {prediction.user.avatarUrl ? (
+                          <img src={prediction.user.avatarUrl} alt={prediction.user.displayName} className="h-6 w-6 rounded-full object-cover" />
+                        ) : (
+                          <span className="text-lg">{prediction.user.avatarEmoji}</span>
+                        )}
+                        <div className="flex flex-col">
+                          <span>{prediction.user.displayName}</span>
+                          {prediction.user.telegramUsername && (
+                            <span className="text-xs text-[var(--muted)] font-normal">@{prediction.user.telegramUsername}</span>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td>{prediction.predHome}:{prediction.predAway}</td>
                     <td className="text-right font-semibold">{prediction.points}</td>

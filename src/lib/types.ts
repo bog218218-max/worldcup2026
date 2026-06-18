@@ -4,6 +4,8 @@ export type LeaderboardRow = {
   displayName: string;
   slug: string;
   avatarEmoji: string;
+  avatarUrl: string | null;
+  telegramUsername: string | null;
   isPaid: boolean;
   points: number;
   predictionsCount: number;

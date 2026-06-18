@@ -7,7 +7,7 @@ export async function getTournamentStats() {
     prisma.prediction.findMany({
       include: {
         match: true,
-        user: { select: { id: true, displayName: true, slug: true, avatarEmoji: true } }
+        user: { select: { id: true, displayName: true, slug: true, avatarEmoji: true, avatarUrl: true, telegramUsername: true } }
       }
     }),
     prisma.match.findMany({
