@@ -16,7 +16,8 @@
   --text: oklch(0.93 0.018 92);
   --muted: oklch(0.725 0.027 244);
   --subtle: oklch(0.595 0.026 244);
-  --green: oklch(0.73 0.16 142);
+  --green: oklch(0.72 0.21 144);
+  --lime: oklch(0.82 0.18 126);
   --gold: oklch(0.82 0.14 84);
   --cyan: oklch(0.72 0.12 225);
   --red: oklch(0.67 0.19 28);
@@ -172,6 +173,21 @@ a:active, button:active {
   border-top: 1px solid var(--line-soft);
   padding: 0.85rem 1rem;
   vertical-align: middle;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 0.7rem 0.5rem;
+}
+
+.leaderboard-table th:first-child,
+.leaderboard-table td:first-child {
+  padding-left: 0.75rem;
+}
+
+.leaderboard-table th:last-child,
+.leaderboard-table td:last-child {
+  padding-right: 0.75rem;
 }
 
 .data-table tbody tr {

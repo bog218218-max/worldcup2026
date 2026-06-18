@@ -7,6 +7,7 @@ import clsx from "clsx";
 const nav = [
   ["/", "Таблица"],
   ["/matches", "Матчи"],
+  ["/bracket", "Плей-офф"],
   ["/players", "Игроки"],
   ["/rules", "Правила"],
   ["/stats", "О турнире"]

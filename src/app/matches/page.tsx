@@ -13,7 +13,7 @@ export default async function MatchesPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow text-[var(--cyan)]">
-            Прогнозы раскрываются после kickoff
+            Прогнозы открываются после начала матча
           </p>
           <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Матчи</h1>
         </div>

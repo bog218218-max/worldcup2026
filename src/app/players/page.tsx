@@ -41,7 +41,7 @@ export default async function PlayersPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 justify-items-center mt-6">
         {cards.map((card) => (
-          <PlayerFantasyCard key={card.user.slug} card={card} />
+          <PlayerFantasyCard key={card.user.slug} card={card} compact={true} />
         ))}
       </div>
     </div>

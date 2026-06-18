@@ -67,7 +67,7 @@ export function MatchesExplorer({ matches }: { matches: MatchExplorerItem[] }) {
   return (
     <section className="space-y-4">
       <div className="panel rounded-lg p-4">
-        <div className="mobile-scroll flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {filters.map((filter) => (
             <button
               key={filter}

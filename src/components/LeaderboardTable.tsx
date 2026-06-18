@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge } from "@/components/Badges";
+import { initials } from "@/lib/avatar";
 import { percent } from "@/lib/format";
 import type { LeaderboardRow } from "@/lib/types";
 
@@ -15,23 +15,54 @@ function formColor(points: number) {
   return "bg-[var(--red)]";
 }
 
-export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
+function RankDelta({ value }: { value: number | null }) {
+  if (value === null || value === 0) return null;
+
+  return (
+    <span className={`text-[10px] font-bold ${value > 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
+      {value > 0 ? "▲" : "▼"}{Math.abs(value)}
+    </span>
+  );
+}
+
+export function LeaderboardTable({ rows, compactMode }: { rows: LeaderboardRow[], compactMode?: boolean }) {
+  if (rows.length === 0) {
+    return (
+      <div className="panel overflow-hidden rounded-lg p-5 text-center text-sm text-[var(--muted)]">
+        Участники ещё не добавлены
+      </div>
+    );
+  }
+
   return (
     <div className="panel overflow-hidden rounded-lg">
-      <div className="hidden table-scroll md:block">
-        <table className="data-table min-w-[980px]">
+      <div className="hidden md:block">
+        <table className="data-table leaderboard-table table-fixed">
+          <colgroup>
+            <col className="w-12" />
+            <col />
+            <col className="w-16" />
+            <col className="w-16" />
+            <col className="w-16" />
+            <col className="w-16" />
+            <col className="w-16" />
+            <col className="hidden w-16 xl:table-column" />
+            <col className="hidden w-16 xl:table-column" />
+            <col className="hidden w-20 xl:table-column" />
+            <col className="w-24" />
+          </colgroup>
           <thead>
             <tr>
               <th>#</th>
               <th>Игрок</th>
               <th className="text-right">Очки</th>
-              <th className="text-right">Прогнозы</th>
-              <th className="text-right">Точные</th>
-              <th className="text-right">Разницы</th>
-              <th className="text-right">Исходы</th>
-              <th className="text-right">Промахи</th>
-              <th className="text-right">Средний</th>
-              <th className="text-right">Точность</th>
+              <th className="text-right">Прогн.</th>
+              <th className="text-right">Точн.</th>
+              <th className="text-right">Разн.</th>
+              <th className="text-right">Исх.</th>
+              <th className="hidden text-right xl:table-cell">Мимо</th>
+              <th className="hidden text-right xl:table-cell">Сред.</th>
+              <th className="hidden text-right xl:table-cell">Точн.</th>
               <th>Форма</th>
             </tr>
           </thead>
@@ -43,30 +74,24 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                     <span className={`grid h-8 w-8 place-items-center rounded-md font-black ${rankClass(row.rank)}`}>
                       {row.rank}
                     </span>
-                    {row.rankDelta !== 0 && (
-                      <span className={`text-[10px] font-bold ${row.rankDelta > 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
-                        {row.rankDelta > 0 ? "▲" : "▼"}{Math.abs(row.rankDelta)}
-                      </span>
-                    )}
-                    {row.rankDelta === 0 && row.lastFive.length > 0 && (
-                      <span className="text-[10px] font-bold text-[var(--muted)]">—</span>
-                    )}
+                    <RankDelta value={row.rankDelta} />
                   </div>
                 </td>
                 <td>
-                  <Link href={`/player/${row.slug}`} className="focus-ring flex items-center gap-2 rounded-sm">
+                  <Link href={`/player/${row.slug}`} className="focus-ring flex min-w-0 items-center gap-2 rounded-sm">
                     {row.avatarUrl ? (
-                      <img src={row.avatarUrl} alt={row.displayName} className="w-8 h-8 rounded-full object-cover" />
+                      <img src={row.avatarUrl} alt={row.displayName} className="h-8 w-8 shrink-0 rounded-full object-cover" />
                     ) : (
-                      <span className="text-xl">{row.avatarEmoji}</span>
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--line-soft)] bg-[var(--surface-2)] text-xs font-black text-[var(--muted)]">
+                        {initials(row.displayName)}
+                      </span>
                     )}
-                    <div className="flex flex-col">
-                      <span className="font-medium leading-tight">{row.displayName}</span>
+                    <div className="flex min-w-0 flex-col">
+                      <span className="truncate font-medium leading-tight">{row.displayName}</span>
                       {row.telegramUsername && (
-                        <span className="text-xs text-[var(--muted)]">@{row.telegramUsername}</span>
+                        <span className="truncate text-xs text-[var(--muted)]">@{row.telegramUsername}</span>
                       )}
                     </div>
-                    {row.rank <= 3 ? <Badge value="призовая зона" tone="prize" /> : null}
                   </Link>
                 </td>
                 <td className="text-right text-lg font-semibold text-[var(--green)]">
@@ -76,9 +101,9 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                 <td className="text-right text-[var(--green)]">{row.exact}</td>
                 <td className="text-right text-[var(--gold)]">{row.difference}</td>
                 <td className="text-right text-[var(--cyan)]">{row.outcome}</td>
-                <td className="text-right text-[var(--red)]">{row.miss}</td>
-                <td className="text-right">{row.averagePoints.toFixed(2)}</td>
-                <td className="text-right">{percent(row.outcomeAccuracy)}</td>
+                <td className="hidden text-right text-[var(--red)] xl:table-cell">{row.miss}</td>
+                <td className="hidden text-right xl:table-cell">{row.averagePoints.toFixed(2)}</td>
+                <td className="hidden text-right xl:table-cell">{percent(row.outcomeAccuracy)}</td>
                 <td>
                   <div className="flex gap-1">
                     {row.lastFive.length === 0 ? (
@@ -101,7 +126,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
       </div>
 
       <div className="divide-y divide-[var(--line-soft)] md:hidden">
-        {rows.map((row) => (
+        {(compactMode ? rows.slice(0, 3) : rows).map((row) => (
           <Link
             key={row.userId}
             href={`/player/${row.slug}`}
@@ -113,21 +138,16 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                   <span className={`grid h-9 w-9 place-items-center rounded-md font-black ${rankClass(row.rank)}`}>
                     {row.rank}
                   </span>
-                  {row.rankDelta !== 0 && (
-                    <span className={`text-[10px] font-bold ${row.rankDelta > 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
-                      {row.rankDelta > 0 ? "▲" : "▼"}{Math.abs(row.rankDelta)}
-                    </span>
-                  )}
-                  {row.rankDelta === 0 && row.lastFive.length > 0 && (
-                    <span className="text-[10px] font-bold text-[var(--muted)]">—</span>
-                  )}
+                  <RankDelta value={row.rankDelta} />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     {row.avatarUrl ? (
                       <img src={row.avatarUrl} alt={row.displayName} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                      <span className="text-xl">{row.avatarEmoji}</span>
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--line-soft)] bg-[var(--surface-2)] text-xs font-black text-[var(--muted)]">
+                        {initials(row.displayName)}
+                      </span>
                     )}
                     <div className="flex flex-col min-w-0">
                       <span className="truncate font-semibold leading-tight">{row.displayName}</span>
@@ -136,9 +156,11 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                       )}
                     </div>
                   </div>
-                  <p className="mt-1.5 text-[0.85rem] text-[var(--muted)]">
-                    {row.exact} точных, {percent(row.outcomeAccuracy)} исходов
-                  </p>
+                  {!compactMode && (
+                    <p className="mt-1.5 text-[0.85rem] text-[var(--muted)]">
+                      {row.exact} точных, {percent(row.outcomeAccuracy)} исходов
+                    </p>
+                  )}
                   {row.rank <= 3 ? (
                     <span className="mt-2 inline-flex rounded-full border border-[oklch(0.79_0.115_86/0.48)] bg-[oklch(0.79_0.115_86/0.11)] px-2 py-1 text-xs font-semibold text-[var(--gold)]">
                       призовая зона
@@ -146,17 +168,19 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                   ) : null}
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right shrink-0">
                 <p className="text-2xl font-black text-[var(--green)]">{row.points}</p>
                 <p className="text-xs text-[var(--muted)]">очков</p>
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-4 gap-2 text-center text-[0.8rem] font-medium text-[var(--muted)]">
-              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Раз {row.difference}</span>
-              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Исх {row.outcome}</span>
-              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Мимо {row.miss}</span>
-              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Ср {row.averagePoints.toFixed(1)}</span>
-            </div>
+            {!compactMode && (
+              <div className="mt-4 grid grid-cols-4 gap-2 text-center text-[0.8rem] font-medium text-[var(--muted)]">
+                <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Раз {row.difference}</span>
+                <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Исх {row.outcome}</span>
+                <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Мимо {row.miss}</span>
+                <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Ср {row.averagePoints.toFixed(1)}</span>
+              </div>
+            )}
           </Link>
         ))}
       </div>

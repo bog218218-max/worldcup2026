@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/Badges";
 import { HitBreakdownChart, PlayerTimelineChart } from "@/components/Charts";
 import { StatCard } from "@/components/StatCard";
+import { initials } from "@/lib/avatar";
 import { formatMskDateTime, formatScore, percent } from "@/lib/format";
 import { getPlayerStats } from "@/lib/services/players";
 
@@ -47,7 +48,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             {player.avatarUrl ? (
               <img src={player.avatarUrl} alt={player.displayName} className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20" />
             ) : (
-              <span className="text-5xl sm:text-6xl">{player.avatarEmoji}</span>
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[var(--line-soft)] bg-[var(--surface-2)] text-xl font-black text-[var(--muted)] sm:h-20 sm:w-20 sm:text-2xl">
+                {initials(player.displayName)}
+              </span>
             )}
             <div className="min-w-0">
               <h1 className="break-words text-3xl font-semibold sm:text-5xl">{player.displayName}</h1>
@@ -96,8 +99,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           <HitBreakdownChart
             data={[
               { name: "Точные", value: player.exact, fill: "var(--green)" },
-              { name: "Разницы", value: player.difference, fill: "var(--gold)" },
-              { name: "Исходы", value: player.outcome, fill: "var(--cyan)" },
+              { name: "Разницы", value: player.difference, fill: "var(--lime)" },
+              { name: "Исходы", value: player.outcome, fill: "var(--gold)" },
               { name: "Промахи", value: player.miss, fill: "var(--red)" }
             ]}
           />

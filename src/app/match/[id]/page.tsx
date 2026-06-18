@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/Badges";
 import { StatCard } from "@/components/StatCard";
@@ -6,6 +7,38 @@ import { formatMskDateTime, formatScore } from "@/lib/format";
 import { getMatchStats } from "@/lib/services/matches";
 
 export const revalidate = 15;
+
+type PredictionUser = {
+  id: string;
+  displayName: string;
+  slug: string;
+  avatarEmoji: string;
+  avatarUrl: string | null;
+  telegramUsername: string | null;
+};
+
+function UserPill({ user, isHighlight = false }: { user: PredictionUser; isHighlight?: boolean }) {
+  return (
+    <Link
+      href={`/player/${user.slug}`}
+      className={`focus-ring inline-flex min-w-0 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-semibold transition-colors ${
+        isHighlight 
+          ? "border-[oklch(0_0_0/0.15)] bg-[oklch(0_0_0/0.15)] text-[var(--score-ink)] hover:bg-[oklch(0_0_0/0.25)]"
+          : "border-[var(--line-soft)] bg-[oklch(0.2_0.04_244/0.72)] text-[var(--text)] hover:bg-[var(--surface-2)]"
+      }`}
+    >
+      {user.avatarUrl ? (
+        <img src={user.avatarUrl} alt="" className="h-4 w-4 shrink-0 rounded-full object-cover" />
+      ) : null}
+      <span className="truncate">{user.displayName}</span>
+    </Link>
+  );
+}
+
+function predictionCountLabel(predictionCount: number, participantCount: number) {
+  if (participantCount === 0) return "Участники ещё не добавлены";
+  return `Прогноз сделали ${predictionCount} из ${participantCount}`;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -72,12 +105,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <div>
             <p className="eyebrow">Прогнозов</p>
             <p className="mt-2 text-sm font-semibold text-[var(--muted)]">
-              Сделали {match.predictionCount} из {match.participantCount}
+              {predictionCountLabel(match.predictionCount, match.participantCount)}
             </p>
           </div>
-          <code className="break-all rounded bg-[var(--bg-2)] px-3 py-2 text-sm font-semibold text-[var(--cyan)]">
-            /predict {match.id} 2:1
-          </code>
+
         </div>
       </section>
 
@@ -88,7 +119,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             API и интерфейс не раскрывают чужие прогнозы до начала матча.
           </p>
           <p className="mt-4 text-lg font-semibold text-[var(--gold)]">
-            Прогноз сделали {match.predictionCount} из {match.participantCount}
+            {predictionCountLabel(match.predictionCount, match.participantCount)}
           </p>
         </section>
       ) : (
@@ -116,31 +147,48 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           ) : null}
 
           <section className="panel rounded-lg p-5">
-            <h2 className="text-2xl font-semibold">Популярные прогнозы</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {match.popularPredictions.map((item) => (
-                <span key={item.score} className="rounded-md border border-[var(--line-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm">
-                  {item.score}: {item.count}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section className="panel rounded-lg p-5">
-            <h2 className="text-2xl font-semibold">Heatmap прогнозов</h2>
+            <h2 className="text-2xl font-semibold">Все прогнозы</h2>
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-              {match.scoreHeatmap.map((item) => (
-                <div
-                  key={`${item.predHome}:${item.predAway}`}
-                  className="rounded-md border border-[var(--line-soft)] px-3 py-3 text-center"
-                  style={{
-                    backgroundColor: `oklch(0.73 0.16 142 / ${0.08 + (item.count / maxHeatmapCount) * 0.28})`
-                  }}
-                >
-                  <p className="text-lg font-black">{item.predHome}:{item.predAway}</p>
-                  <p className="mt-1 text-xs text-[var(--muted)]">{item.count} прогнозов</p>
-                </div>
-              ))}
+              {match.scoreHeatmap.map((item) => {
+                let bgStyle = `oklch(0.72 0.21 144 / ${0.08 + (item.count / maxHeatmapCount) * 0.28})`;
+                let borderClass = "border-[var(--line-soft)]";
+                let textClass = "";
+                
+                if (item.resultType === "exact") {
+                  bgStyle = "oklch(0.72 0.21 144 / 0.3)";
+                  borderClass = "border-[oklch(0.72_0.21_144/0.6)]";
+                  textClass = "text-[var(--green)]";
+                } else if (item.resultType === "difference") {
+                  bgStyle = "oklch(0.82 0.18 126 / 0.3)";
+                  borderClass = "border-[oklch(0.82_0.18_126/0.6)]";
+                  textClass = "text-[var(--lime)]";
+                } else if (item.resultType === "outcome") {
+                  bgStyle = "oklch(0.82 0.14 84 / 0.3)";
+                  borderClass = "border-[oklch(0.82_0.14_84/0.6)]";
+                  textClass = "text-[var(--gold)]";
+                } else if (item.resultType === "miss") {
+                  bgStyle = "oklch(0.67 0.19 28 / 0.3)";
+                  borderClass = "border-[oklch(0.67_0.19_28/0.6)]";
+                  textClass = "text-[var(--red)]";
+                }
+
+                return (
+                  <div
+                    key={`${item.predHome}:${item.predAway}`}
+                    className={`rounded-md border ${borderClass} px-3 py-3 text-center transition-colors`}
+                    style={{ backgroundColor: bgStyle }}
+                  >
+                    <p className={`text-lg font-black ${textClass}`}>
+                      {item.predHome}:{item.predAway}
+                    </p>
+                    <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                      {item.users.map((user) => (
+                        <UserPill key={user.id} user={user} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -157,74 +205,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             </section>
           ) : null}
 
-          <section className="panel divide-y divide-[var(--line-soft)] overflow-hidden rounded-lg md:hidden">
-            {match.predictions.map((prediction) => (
-              <div key={prediction.id} className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    {prediction.user.avatarUrl ? (
-                      <img src={prediction.user.avatarUrl} alt={prediction.user.displayName} className="h-9 w-9 shrink-0 rounded-full object-cover" />
-                    ) : (
-                      <span className="shrink-0 text-2xl">{prediction.user.avatarEmoji}</span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">{prediction.user.displayName}</p>
-                      {prediction.user.telegramUsername && (
-                        <p className="truncate text-xs text-[var(--muted)]">@{prediction.user.telegramUsername}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-xl font-black text-[var(--green)]">{prediction.points}</p>
-                    <p className="text-xs text-[var(--muted)]">очков</p>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="rounded-md border border-[var(--line-soft)] bg-[var(--score)] px-3 py-2 text-lg font-black text-[var(--score-ink)]">
-                    {prediction.predHome}:{prediction.predAway}
-                  </span>
-                  <Badge value={prediction.resultType} />
-                </div>
-              </div>
-            ))}
-          </section>
 
-          <section className="panel table-scroll hidden overflow-hidden rounded-lg md:block">
-            <table className="data-table min-w-[720px]">
-              <thead>
-                <tr>
-                  <th>Игрок</th>
-                  <th>Прогноз</th>
-                  <th className="text-right">Очки</th>
-                  <th>Тип</th>
-                </tr>
-              </thead>
-              <tbody>
-                {match.predictions.map((prediction) => (
-                  <tr key={prediction.id}>
-                    <td className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {prediction.user.avatarUrl ? (
-                          <img src={prediction.user.avatarUrl} alt={prediction.user.displayName} className="h-6 w-6 rounded-full object-cover" />
-                        ) : (
-                          <span className="text-lg">{prediction.user.avatarEmoji}</span>
-                        )}
-                        <div className="flex flex-col">
-                          <span>{prediction.user.displayName}</span>
-                          {prediction.user.telegramUsername && (
-                            <span className="text-xs text-[var(--muted)] font-normal">@{prediction.user.telegramUsername}</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td>{prediction.predHome}:{prediction.predAway}</td>
-                    <td className="text-right font-semibold">{prediction.points}</td>
-                    <td><Badge value={prediction.resultType} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
         </>
       )}
     </div>

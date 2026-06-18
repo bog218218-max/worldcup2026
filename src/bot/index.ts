@@ -842,8 +842,8 @@ bot.command("missing", async (ctx) => {
   await ctx.reply(
     [
       `${match.homeTeam} - ${match.awayTeam}`,
-      `Kickoff: ${formatMskDateTime(match.kickoffTime)}`,
-      `Deadline: ${formatMskDateTime(getPredictionDeadline(match.kickoffTime))}`,
+      `Начало: ${formatMskDateTime(match.kickoffTime)}`,
+      `Дедлайн: ${formatMskDateTime(getPredictionDeadline(match.kickoffTime))}`,
       `Прогноз сделали: ${predictedCount} из ${users.length}`,
       "",
       missingUsers.length > 0

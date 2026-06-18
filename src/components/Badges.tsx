@@ -2,8 +2,8 @@ import clsx from "clsx";
 
 const toneClasses = {
   exact: "border-[oklch(0.74_0.145_148/0.45)] bg-[oklch(0.74_0.145_148/0.1)] text-[var(--green)]",
-  difference: "border-[oklch(0.79_0.115_86/0.46)] bg-[oklch(0.79_0.115_86/0.1)] text-[var(--gold)]",
-  outcome: "border-[oklch(0.69_0.095_218/0.42)] bg-[oklch(0.69_0.095_218/0.09)] text-[var(--cyan)]",
+  difference: "border-[oklch(0.82_0.15_125/0.45)] bg-[oklch(0.82_0.15_125/0.1)] text-[var(--lime)]",
+  outcome: "border-[oklch(0.79_0.115_86/0.46)] bg-[oklch(0.79_0.115_86/0.1)] text-[var(--gold)]",
   miss: "border-[oklch(0.66_0.145_28/0.44)] bg-[oklch(0.66_0.145_28/0.1)] text-[var(--red)]",
   pending: "border-[var(--line-soft)] bg-[var(--surface-2)] text-[var(--muted)]",
   live: "border-[oklch(0.66_0.145_28/0.5)] bg-[oklch(0.66_0.145_28/0.1)] text-[var(--red)] animate-pulse",

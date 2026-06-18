@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Link>
               <div className="flex flex-1 flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pb-0">
                 <Nav />
-                <div className="flex shrink-0 items-center gap-3">
+                <div className="hidden shrink-0 items-center gap-3 lg:flex">
                   <TelegramCta compact />
                 </div>
               </div>

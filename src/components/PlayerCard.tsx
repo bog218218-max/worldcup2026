@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { initials } from "@/lib/avatar";
 
 export type PlayerTier = "legend" | "gold" | "silver";
 
@@ -31,9 +32,6 @@ export function PlayerCard({ user, stats }: PlayerCardProps) {
   const tierClass = `fifa-tier-${stats.tier}`;
   const glowClass = `glow-${stats.tier}`;
 
-  // Use the first letter if no avatar is present
-  const firstLetter = user.displayName.charAt(0).toUpperCase();
-
   return (
     <div className="flex justify-center w-full">
       <div 
@@ -54,16 +52,14 @@ export function PlayerCard({ user, stats }: PlayerCardProps) {
                     fill
                     className="object-cover"
                   />
-                ) : user.avatarEmoji ? (
-                  <span className="text-[calc(var(--cw)*0.35)] leading-none">{user.avatarEmoji}</span>
                 ) : (
-                  <span>{firstLetter}</span>
+                  <span>{initials(user.displayName)}</span>
                 )}
               </div>
               <div className="fifa-top-left">
                 <div className="fifa-overall">{stats.ovr}</div>
                 <div className="fifa-pos">OVR</div>
-                <div className="fifa-suit">⚽</div>
+                <div className="fifa-suit">FC</div>
               </div>
             </div>
             

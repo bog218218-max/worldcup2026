@@ -342,6 +342,10 @@
 
 @media (max-width: 575px) {
   .fantasy-card-wrapper {
-    --cw: calc((100vw - 32px) / 2);
+    --cw: 240px;
   }
+}
+
+.fantasy-card-wrapper.compact {
+  --cw: 220px;
 }

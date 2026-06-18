@@ -43,13 +43,14 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
     }
   });
 
-  const latestMatch = await prisma.match.findFirst({
+  const finishedMatches = await prisma.match.findMany({
     where: { status: "finished" },
-    orderBy: { kickoffTime: "desc" }
+    orderBy: { kickoffTime: "desc" },
+    select: { id: true }
   });
-  const latestMatchId = latestMatch?.id;
 
   const previousRows: Omit<LeaderboardRow, "rank" | "rankDelta">[] = [];
+  const scoredMatchIds = new Set<string>();
 
   const rows = users.map((user) => {
     const predictions = user.predictions;
@@ -75,7 +76,7 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
       exactAccuracy: 0,
       pointsRate: 0,
       lastFive: [],
-      rankDelta: 0
+      rankDelta: null
     };
 
     const previousRow: Omit<LeaderboardRow, "rank" | "rankDelta"> = {
@@ -83,13 +84,9 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
     };
 
     for (const prediction of scoredPredictions) {
+      scoredMatchIds.add(prediction.matchId);
       row.points += prediction.points;
       incrementResultType(row, prediction.resultType);
-
-      if (prediction.matchId !== latestMatchId) {
-        previousRow.points += prediction.points;
-        incrementResultType(previousRow, prediction.resultType);
-      }
     }
 
     previousRows.push(previousRow);
@@ -120,6 +117,34 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
   });
 
   const currentRanked = rankLeaderboardRows(rows);
+
+  const latestScoredMatchId = finishedMatches.find((match) =>
+    scoredMatchIds.has(match.id)
+  )?.id;
+  const hasPreviousScoredMatch =
+    [...scoredMatchIds].filter((matchId) => matchId !== latestScoredMatchId).length > 0;
+
+  if (!latestScoredMatchId || !hasPreviousScoredMatch) {
+    return currentRanked.map((row) => ({
+      ...row,
+      rankDelta: null
+    }));
+  }
+
+  for (const user of users) {
+    const previousRow = previousRows.find((row) => row.userId === user.id);
+    if (!previousRow) continue;
+
+    for (const prediction of user.predictions) {
+      if (prediction.resultType === "pending" || prediction.matchId === latestScoredMatchId) {
+        continue;
+      }
+
+      previousRow.points += prediction.points;
+      incrementResultType(previousRow, prediction.resultType);
+    }
+  }
+
   const previousRanked = rankLeaderboardRows(previousRows);
 
   return currentRanked.map((row) => {

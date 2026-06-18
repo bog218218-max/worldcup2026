@@ -22,5 +22,5 @@ export type LeaderboardRow = {
     points: number;
     resultType: string;
   }>;
-  rankDelta: number;
+  rankDelta: number | null;
 };

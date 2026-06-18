@@ -7,7 +7,7 @@ import clsx from "clsx";
 import type { PlayerCardInfo } from "@/lib/services/cards";
 import "./PlayerFantasyCard.css";
 
-export function PlayerFantasyCard({ card }: { card: PlayerCardInfo }) {
+export function PlayerFantasyCard({ card, compact }: { card: PlayerCardInfo, compact?: boolean }) {
   const [flipped, setFlipped] = useState(false);
   const { user, stats } = card;
 
@@ -35,7 +35,8 @@ export function PlayerFantasyCard({ card }: { card: PlayerCardInfo }) {
         className={clsx(
           "fantasy-card-wrapper",
           `glow-${tier}`,
-          flipped && "flipped"
+          flipped && "flipped",
+          compact && "compact"
         )}
         onClick={() => setFlipped(!flipped)}
       >
@@ -61,7 +62,7 @@ export function PlayerFantasyCard({ card }: { card: PlayerCardInfo }) {
               <div className="fantasy-top-left">
                 <div className="fantasy-overall">{isNovice ? "??" : stats.ovr}</div>
                 <div className="fantasy-pos">{stats.archetypeCode}</div>
-                <div className="fantasy-suit">♠</div>
+                <div className="fantasy-suit">FC</div>
               </div>
 
               {/* Bottom Info Section */}

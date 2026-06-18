@@ -78,17 +78,65 @@ export async function getMatchStats(matchId: string) {
       ? scored.reduce((sum, prediction) => sum + prediction.points, 0) / scored.length
       : 0;
   const playersWithPoints = scored.filter((prediction) => prediction.points > 0).length;
-  const predictionGroups = new Map<string, number>();
-  const heatmap = new Map<string, { predHome: number; predAway: number; count: number }>();
+  const predictionGroups = new Map<
+    string,
+    {
+      count: number;
+      users: Array<{
+        id: string;
+        displayName: string;
+        slug: string;
+        avatarEmoji: string;
+        avatarUrl: string | null;
+        telegramUsername: string | null;
+      }>;
+    }
+  >();
+  const heatmap = new Map<
+    string,
+    {
+      predHome: number;
+      predAway: number;
+      count: number;
+      points: number | null;
+      resultType: string | null;
+      users: Array<{
+        id: string;
+        displayName: string;
+        slug: string;
+        avatarEmoji: string;
+        avatarUrl: string | null;
+        telegramUsername: string | null;
+      }>;
+    }
+  >();
 
   for (const prediction of visiblePredictions) {
     const key = `${prediction.predHome}:${prediction.predAway}`;
-    predictionGroups.set(key, (predictionGroups.get(key) ?? 0) + 1);
-    heatmap.set(key, {
+    const user = {
+      id: prediction.user.id,
+      displayName: prediction.user.displayName,
+      slug: prediction.user.slug,
+      avatarEmoji: prediction.user.avatarEmoji,
+      avatarUrl: prediction.user.avatarUrl,
+      telegramUsername: prediction.user.telegramUsername
+    };
+    const group = predictionGroups.get(key) ?? { count: 0, users: [] };
+    group.count += 1;
+    group.users.push(user);
+    predictionGroups.set(key, group);
+
+    const heatmapItem = heatmap.get(key) ?? {
       predHome: prediction.predHome,
       predAway: prediction.predAway,
-      count: (heatmap.get(key)?.count ?? 0) + 1
-    });
+      count: 0,
+      points: match.status === "finished" ? prediction.points : null,
+      resultType: match.status === "finished" ? prediction.resultType : null,
+      users: []
+    };
+    heatmapItem.count += 1;
+    heatmapItem.users.push(user);
+    heatmap.set(key, heatmapItem);
   }
 
   const bestScore = Math.max(...scored.map((p) => p.points), 0);
@@ -116,11 +164,20 @@ export async function getMatchStats(matchId: string) {
       away: awayWins
     } : null,
     popularPredictions: predictionsVisible ? [...predictionGroups.entries()]
-      .map(([score, count]) => ({ score, count }))
+      .map(([score, item]) => ({
+        score,
+        count: item.count,
+        users: item.users.sort((a, b) => a.displayName.localeCompare(b.displayName, "ru"))
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5) : [],
     scoreHeatmap: predictionsVisible ? [...heatmap.values()].sort(
-      (a, b) => a.predHome - b.predHome || a.predAway - b.predAway
+      (a, b) => {
+        if (a.points !== null && b.points !== null && a.points !== b.points) {
+          return b.points - a.points;
+        }
+        return a.predHome - b.predHome || a.predAway - b.predAway;
+      }
     ) : [],
     averagePoints: finishedStatsVisible ? averagePoints : null,
     playersWithPoints: finishedStatsVisible ? playersWithPoints : null,
