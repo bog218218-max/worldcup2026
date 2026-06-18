@@ -17,11 +17,11 @@ const toneClass = {
 
 export function StatCard({ label, value, hint, tone = "default" }: StatCardProps) {
   return (
-    <section className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-      <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--muted)]">
+    <section className="panel-muted rounded-lg p-4">
+      <p className="eyebrow">
         {label}
       </p>
-      <p className={clsx("mt-2 text-3xl font-semibold", toneClass[tone])}>{value}</p>
+      <p className={clsx("metric-value mt-3 text-3xl", toneClass[tone])}>{value}</p>
       {hint ? <p className="mt-2 text-sm text-[var(--muted)]">{hint}</p> : null}
     </section>
   );

@@ -1,4 +1,5 @@
 export const ENTRY_FEE_RUB = 1000;
+export const MATCH_TIMEZONE_OFFSET = process.env.MATCH_TIMEZONE_OFFSET || "+03:00";
 
 export function getAdminTelegramIds() {
   return new Set(

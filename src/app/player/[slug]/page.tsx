@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/Badges";
 import { StatCard } from "@/components/StatCard";
@@ -5,6 +6,22 @@ import { formatKickoff, formatScore, percent } from "@/lib/format";
 import { getPlayerStats } from "@/lib/services/players";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const player = await getPlayerStats(slug);
+  if (!player) return {};
+  
+  const title = `${player.displayName} - Forecast Cup 26`;
+  const description = `Профиль участника: ${player.points} очков, ${player.exact} точных счетов`;
+  
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "profile" },
+    twitter: { card: "summary_large_image", title, description }
+  };
+}
 
 export default async function PlayerPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -14,12 +31,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--green)]">
+      <section className="panel rounded-lg p-5">
+        <p className="eyebrow text-[var(--green)]">
           Место #{player.rank}
         </p>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-5xl font-semibold">
+          <h1 className="text-4xl font-semibold sm:text-5xl">
             <span className="mr-3">{player.avatarEmoji}</span>
             {player.displayName}
           </h1>
@@ -46,7 +63,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
       </section>
 
       {player.bestGame ? (
-        <section className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+        <section className="panel rounded-lg p-5">
+          <p className="eyebrow">Пик формы</p>
           <h2 className="text-2xl font-semibold">Лучшая игра</h2>
           <p className="mt-2 text-[var(--muted)]">
             {player.bestGame.homeTeam} vs {player.bestGame.awayTeam}: {player.bestGame.points} очков
@@ -54,29 +72,29 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         </section>
       ) : null}
 
-      <section className="table-scroll rounded-lg border border-[var(--line)] bg-[var(--surface)]">
-        <table className="min-w-[860px] w-full text-sm">
+      <section className="panel table-scroll overflow-hidden rounded-lg">
+        <table className="data-table min-w-[860px]">
           <thead>
-            <tr className="border-b border-[var(--line)] text-left text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
-              <th className="px-4 py-3">Матч</th>
-              <th className="px-4 py-3">Дата</th>
-              <th className="px-4 py-3">Факт</th>
-              <th className="px-4 py-3">Прогноз</th>
-              <th className="px-4 py-3 text-right">Очки</th>
-              <th className="px-4 py-3">Тип</th>
+            <tr>
+              <th>Матч</th>
+              <th>Дата</th>
+              <th>Факт</th>
+              <th>Прогноз</th>
+              <th className="text-right">Очки</th>
+              <th>Тип</th>
             </tr>
           </thead>
           <tbody>
             {player.history.map((item) => (
-              <tr key={item.id} className="border-b border-[var(--line)] last:border-b-0">
-                <td className="px-4 py-3 font-medium">
+              <tr key={item.id}>
+                <td className="font-medium">
                   {item.homeFlag} {item.homeTeam} vs {item.awayTeam} {item.awayFlag}
                 </td>
-                <td className="px-4 py-3 text-[var(--muted)]">{formatKickoff(item.kickoffTime)}</td>
-                <td className="px-4 py-3">{formatScore(item.homeScore, item.awayScore)}</td>
-                <td className="px-4 py-3">{item.predHome}:{item.predAway}</td>
-                <td className="px-4 py-3 text-right font-semibold">{item.points}</td>
-                <td className="px-4 py-3"><Badge value={item.resultType} /></td>
+                <td className="text-[var(--muted)]">{formatKickoff(item.kickoffTime)}</td>
+                <td>{formatScore(item.homeScore, item.awayScore)}</td>
+                <td>{item.predHome}:{item.predAway}</td>
+                <td className="text-right font-semibold">{item.points}</td>
+                <td><Badge value={item.resultType} /></td>
               </tr>
             ))}
           </tbody>

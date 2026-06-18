@@ -11,10 +11,10 @@ export default async function LeaderboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--green)]">
+        <p className="eyebrow text-[var(--green)]">
           Тай-брейки: очки, точные, разницы, исходы, меньше промахов
         </p>
-        <h1 className="mt-2 text-4xl font-semibold">Таблица лидеров</h1>
+        <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Таблица</h1>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Лидер" value={leader?.displayName ?? "нет"} hint={leader ? `${leader.points} очков` : undefined} tone="green" />

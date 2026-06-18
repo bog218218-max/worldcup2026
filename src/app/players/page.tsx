@@ -11,14 +11,14 @@ export default async function PlayersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+        <p className="eyebrow text-[var(--gold)]">
           Профили без Telegram ID
         </p>
-        <h1 className="mt-2 text-4xl font-semibold">Игроки</h1>
+        <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Игроки</h1>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Всего игроков" value={players.length} />
-        <StatCard label="Оплачено" value={players.filter((player) => player.isPaid).length} tone="green" />
+        <StatCard label="Взнос" value="1000 ₽" hint="наличкой вне приложения" tone="green" />
         <StatCard label="Лучший средний" value={players[0]?.averagePoints.toFixed(2) ?? "0.00"} tone="gold" />
       </div>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -26,7 +26,7 @@ export default async function PlayersPage() {
           <Link
             key={player.slug}
             href={`/player/${player.slug}`}
-            className="focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 transition hover:bg-[var(--surface-2)]"
+            className="focus-ring panel rounded-lg p-4 transition-colors duration-150 hover:border-[oklch(0.74_0.145_148/0.42)]"
           >
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-3">
@@ -38,10 +38,10 @@ export default async function PlayersPage() {
               </span>
               <span className="text-2xl font-semibold text-[var(--green)]">{player.points}</span>
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-sm text-[var(--muted)]">
-              <span>Точные: {player.exact}</span>
-              <span>Средний: {player.averagePoints.toFixed(2)}</span>
-              <span>Исходы: {percent(player.outcomeAccuracy)}</span>
+            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-[var(--line-soft)] pt-4 text-sm text-[var(--muted)]">
+              <span>Тч {player.exact}</span>
+              <span>Ср {player.averagePoints.toFixed(2)}</span>
+              <span>Исх {percent(player.outcomeAccuracy)}</span>
             </div>
           </Link>
         ))}

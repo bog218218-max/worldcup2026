@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { LeaderboardRow } from "@/lib/types";
 
 function incrementResultType(
-  row: Omit<LeaderboardRow, "rank">,
+  row: Omit<LeaderboardRow, "rank" | "rankDelta">,
   resultType: PredictionResultType
 ) {
   if (resultType === "exact") row.exact += 1;
@@ -12,7 +12,7 @@ function incrementResultType(
   if (resultType === "miss") row.miss += 1;
 }
 
-export function sortLeaderboardRows<T extends Omit<LeaderboardRow, "rank">>(rows: T[]) {
+export function sortLeaderboardRows<T extends Omit<LeaderboardRow, "rank" | "rankDelta">>(rows: T[]) {
   return [...rows].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.exact !== a.exact) return b.exact - a.exact;
@@ -23,7 +23,7 @@ export function sortLeaderboardRows<T extends Omit<LeaderboardRow, "rank">>(rows
   });
 }
 
-export function rankLeaderboardRows(rows: Array<Omit<LeaderboardRow, "rank">>) {
+export function rankLeaderboardRows<T extends Omit<LeaderboardRow, "rank" | "rankDelta">>(rows: T[]) {
   return sortLeaderboardRows(rows).map((row, index) => ({
     ...row,
     rank: index + 1
@@ -41,6 +41,14 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
       }
     }
   });
+
+  const latestMatch = await prisma.match.findFirst({
+    where: { status: "finished" },
+    orderBy: { kickoffTime: "desc" }
+  });
+  const latestMatchId = latestMatch?.id;
+
+  const previousRows: Omit<LeaderboardRow, "rank" | "rankDelta">[] = [];
 
   const rows = users.map((user) => {
     const predictions = user.predictions;
@@ -63,13 +71,25 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
       outcomeAccuracy: 0,
       exactAccuracy: 0,
       pointsRate: 0,
-      lastFive: []
+      lastFive: [],
+      rankDelta: 0
+    };
+
+    const previousRow: Omit<LeaderboardRow, "rank" | "rankDelta"> = {
+      ...row
     };
 
     for (const prediction of scoredPredictions) {
       row.points += prediction.points;
       incrementResultType(row, prediction.resultType);
+
+      if (prediction.matchId !== latestMatchId) {
+        previousRow.points += prediction.points;
+        incrementResultType(previousRow, prediction.resultType);
+      }
     }
+
+    previousRows.push(previousRow);
 
     row.averagePoints =
       scoredPredictions.length > 0 ? row.points / scoredPredictions.length : 0;
@@ -96,5 +116,14 @@ export async function getLeaderboard(): Promise<LeaderboardRow[]> {
     return row;
   });
 
-  return rankLeaderboardRows(rows);
+  const currentRanked = rankLeaderboardRows(rows);
+  const previousRanked = rankLeaderboardRows(previousRows);
+
+  return currentRanked.map((row) => {
+    const prev = previousRanked.find((p) => p.userId === row.userId);
+    return {
+      ...row,
+      rankDelta: prev ? prev.rank - row.rank : 0
+    };
+  });
 }

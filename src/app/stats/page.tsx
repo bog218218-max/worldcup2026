@@ -11,10 +11,10 @@ export default async function StatsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--cyan)]">
+        <p className="eyebrow text-[var(--cyan)]">
           Турнирная аналитика
         </p>
-        <h1 className="mt-2 text-4xl font-semibold">Статистика</h1>
+        <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Статистика</h1>
       </div>
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Всего прогнозов" value={stats.totalPredictions} />
@@ -40,6 +40,7 @@ export default async function StatsPage() {
       </section>
 
       <section>
+        <p className="eyebrow mb-1">Игроки</p>
         <h2 className="mb-4 text-2xl font-semibold">Рейтинг по точности</h2>
         <LeaderboardTable rows={stats.accuracyRanking} />
       </section>

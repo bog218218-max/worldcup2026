@@ -1,6 +1,6 @@
 export function formatScore(home: number | null | undefined, away: number | null | undefined) {
   if (home === null || home === undefined || away === null || away === undefined) {
-    return "—";
+    return "vs";
   }
 
   return `${home}:${away}`;

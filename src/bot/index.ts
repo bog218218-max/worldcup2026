@@ -1,7 +1,8 @@
 import { Context, Telegraf } from "telegraf";
 import { isAdminTelegramId } from "@/lib/config";
-import { isPredictionLocked } from "@/lib/deadline";
+import { getPredictionDeadline, isPredictionLocked } from "@/lib/deadline";
 import { formatKickoff, formatRub } from "@/lib/format";
+import { parseMatchInput } from "@/lib/matchInput";
 import { prisma } from "@/lib/prisma";
 import { parseScoreInput } from "@/lib/scoring";
 import { getLeaderboard } from "@/lib/services/leaderboard";
@@ -9,6 +10,7 @@ import { getMatches } from "@/lib/services/matches";
 import { getPrizeOverview } from "@/lib/services/prizes";
 import { recalculateAll, recalculateMatch } from "@/lib/services/recalc";
 import { withFallbackSlug } from "@/lib/slug";
+import { getAdminTelegramIds } from "@/lib/config";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -66,6 +68,44 @@ async function resolveMatchByIndex(indexText: string, includeFinished = false) {
   return matches[index - 1];
 }
 
+function matchFormatHelp(command: "/add_match" | "/edit_match") {
+  if (command === "/add_match") {
+    return [
+      "Формат:",
+      "/add_match Команда1; Команда2; YYYY-MM-DD HH:mm; Stage",
+      "",
+      "Пример:",
+      "/add_match Испания; Германия; 2026-06-18 21:00; Группа A",
+      "",
+      "Опционально можно добавить флаги:",
+      "/add_match Испания; Германия; 2026-06-18 21:00; Группа A; 🇪🇸; 🇩🇪"
+    ].join("\n");
+  }
+
+  return [
+    "Формат:",
+    "/edit_match <номер> Команда1; Команда2; YYYY-MM-DD HH:mm; Stage",
+    "",
+    "Пример:",
+    "/edit_match 1 Испания; Германия; 2026-06-18 21:00; Группа A"
+  ].join("\n");
+}
+
+function matchConfirmationText(prefix: string, match: {
+  homeTeam: string;
+  awayTeam: string;
+  kickoffTime: Date;
+  stage: string;
+}) {
+  return [
+    prefix,
+    `${match.homeTeam} - ${match.awayTeam}`,
+    `Дата/время: ${formatKickoff(match.kickoffTime)}`,
+    `Стадия: ${match.stage}`,
+    `Дедлайн прогноза: ${formatKickoff(getPredictionDeadline(match.kickoffTime))}`
+  ].join("\n");
+}
+
 bot.start(async (ctx) => {
   const user = await ensureUser(ctx);
   pendingDisplayName.add(user.telegramId);
@@ -89,7 +129,7 @@ bot.command("help", async (ctx) => {
       "/rules - правила",
       "",
       "Админ:",
-      "/admin - админское меню"
+      "/admin - админское меню и форматы команд"
     ].join("\n")
   );
 });
@@ -220,12 +260,18 @@ bot.command("admin", async (ctx) => {
   await ctx.reply(
     [
       "Админские команды:",
-      "/add_match Home | Away | ISO | Stage | HomeFlag | AwayFlag",
-      "/edit_match <номер> Home | Away | ISO | Stage | HomeFlag | AwayFlag",
-      "/set_result <номер из общего списка> <счёт>",
-      "/recalc - пересчитать очки",
-      "/participants - участники",
-      "/set_paid <telegramId> <yes|no>",
+      "",
+      "/participants - список участников и telegramId",
+      "/set_paid <telegramId> yes - опционально отметить наличный взнос",
+      "/set_paid <telegramId> no - опционально снять отметку взноса",
+      "",
+      "/add_match Команда1; Команда2; YYYY-MM-DD HH:mm; Stage",
+      "Пример: /add_match Испания; Германия; 2026-06-18 21:00; Группа A",
+      "",
+      "/edit_match <номер> Команда1; Команда2; YYYY-MM-DD HH:mm; Stage",
+      "/set_live <номер> - поставить матчу статус live",
+      "/set_result <номер> <счёт> - пример: /set_result 1 2:1",
+      "/recalc CONFIRM - пересчитать очки по всем завершённым матчам",
       "/prize - призовой фонд"
     ].join("\n")
   );
@@ -239,21 +285,18 @@ bot.command("add_match", async (ctx) => {
   }
 
   const payload = commandText(ctx).replace("/add_match", "").trim();
-  const [homeTeam, awayTeam, kickoffRaw, stage, homeFlag = "🏳️", awayFlag = "🏳️"] = payload
-    .split("|")
-    .map((part) => part.trim());
-  const kickoffTime = new Date(kickoffRaw);
+  const matchInput = parseMatchInput(payload);
 
-  if (!homeTeam || !awayTeam || !stage || Number.isNaN(kickoffTime.getTime())) {
-    await ctx.reply("Формат: /add_match Home | Away | 2026-06-18T21:00:00+03:00 | Группа A | 🇧🇷 | 🇩🇪");
+  if (!matchInput) {
+    await ctx.reply(matchFormatHelp("/add_match"));
     return;
   }
 
   const match = await prisma.match.create({
-    data: { homeTeam, awayTeam, kickoffTime, stage, homeFlag, awayFlag }
+    data: matchInput
   });
 
-  await ctx.reply(`Матч добавлен: ${match.homeTeam} - ${match.awayTeam}`);
+  await ctx.reply(matchConfirmationText("Матч добавлен:", match));
 });
 
 bot.command("edit_match", async (ctx) => {
@@ -265,23 +308,47 @@ bot.command("edit_match", async (ctx) => {
 
   const payload = commandText(ctx).replace("/edit_match", "").trim();
   const [matchIndex, rest] = payload.split(/\s+(.+)/);
-  const [homeTeam, awayTeam, kickoffRaw, stage, homeFlag = "🏳️", awayFlag = "🏳️"] = (rest ?? "")
-    .split("|")
-    .map((part) => part.trim());
-  const kickoffTime = new Date(kickoffRaw);
+  const matchInput = parseMatchInput(rest ?? "");
   const match = await resolveMatchByIndex(matchIndex, true);
 
-  if (!match || !homeTeam || !awayTeam || !stage || Number.isNaN(kickoffTime.getTime())) {
-    await ctx.reply("Формат: /edit_match <номер> Home | Away | 2026-06-18T21:00:00+03:00 | Группа A | 🇧🇷 | 🇩🇪");
+  if (!match || !matchInput) {
+    await ctx.reply(matchFormatHelp("/edit_match"));
     return;
   }
 
   await prisma.match.update({
     where: { id: match.id },
-    data: { homeTeam, awayTeam, kickoffTime, stage, homeFlag, awayFlag }
+    data: matchInput
   });
 
-  await ctx.reply(`Матч обновлён: ${homeTeam} - ${awayTeam}`);
+  await ctx.reply(matchConfirmationText("Матч обновлён:", matchInput));
+});
+
+bot.command("set_live", async (ctx) => {
+  const id = telegramId(ctx);
+  if (!requireAdmin(id)) {
+    await ctx.reply("Нет доступа.");
+    return;
+  }
+
+  const matchIndex = commandText(ctx).replace("/set_live", "").trim();
+  if (!matchIndex) {
+    await ctx.reply("Формат: /set_live <номер матча>. Пример: /set_live 1");
+    return;
+  }
+
+  const match = await resolveMatchByIndex(matchIndex, true);
+  if (!match) {
+    await ctx.reply("Матч не найден.");
+    return;
+  }
+
+  await prisma.match.update({
+    where: { id: match.id },
+    data: { status: "live" }
+  });
+
+  await ctx.reply(`Матч ${match.homeTeam} - ${match.awayTeam} переведён в статус ПРЯМОЙ ЭФИР.`);
 });
 
 bot.command("set_result", async (ctx) => {
@@ -314,13 +381,49 @@ bot.command("set_result", async (ctx) => {
   });
   await recalculateMatch(match.id);
 
-  await ctx.reply(`Результат сохранён: ${match.homeTeam} - ${match.awayTeam} ${score.home}:${score.away}`);
+  await ctx.reply(
+    [
+      `Результат сохранён: ${match.homeTeam} - ${match.awayTeam} ${score.home}:${score.away}`,
+      "Очки по этому матчу пересчитаны автоматически."
+    ].join("\n")
+  );
+
+  // Broadcast result and top-3 to all users
+  const leaderboard = await getLeaderboard();
+  const top3 = leaderboard.slice(0, 3).map((r) => `${r.rank}. ${r.displayName} - ${r.points}`).join("\n");
+  const users = await prisma.user.findMany();
+  const broadcastText = [
+    `Матч завершён: ${match.homeTeam} - ${match.awayTeam} ${score.home}:${score.away}`,
+    "",
+    "Топ-3 турнирной таблицы:",
+    top3 || "Таблица пустая."
+  ].join("\n");
+
+  for (const u of users) {
+    try {
+      await bot.telegram.sendMessage(u.telegramId, broadcastText);
+    } catch (err) {
+      console.error(`Failed to send broadcast to ${u.telegramId}`, err);
+    }
+  }
 });
 
 bot.command("recalc", async (ctx) => {
   const id = telegramId(ctx);
   if (!requireAdmin(id)) {
     await ctx.reply("Нет доступа.");
+    return;
+  }
+
+  const confirmation = commandText(ctx).trim().split(/\s+/)[1];
+  if (confirmation !== "CONFIRM") {
+    await ctx.reply(
+      [
+        "Внимание: /recalc пересчитает очки по всем завершённым матчам.",
+        "Это безопасно для корректных результатов, но массово меняет Prediction.points.",
+        "Для запуска отправь: /recalc CONFIRM"
+      ].join("\n")
+    );
     return;
   }
 
@@ -338,7 +441,7 @@ bot.command("participants", async (ctx) => {
   const users = await prisma.user.findMany({ orderBy: { displayName: "asc" } });
   await ctx.reply(
     users
-      .map((user) => `${user.displayName}: ${user.isPaid ? "оплачено" : "не оплачено"}, tg ${user.telegramId}`)
+      .map((user) => `${user.displayName}: tg ${user.telegramId}, взнос: ${user.isPaid ? "отмечен" : "не отмечен"}`)
       .join("\n") || "Участников нет."
   );
 });
@@ -354,7 +457,14 @@ bot.command("set_paid", async (ctx) => {
   const isPaid = value === "yes" || value === "true" || value === "1";
 
   if (!targetTelegramId || !value) {
-    await ctx.reply("Формат: /set_paid <telegramId> <yes|no>");
+    await ctx.reply(
+      [
+        "Опционально, если хотите отмечать наличные взносы в боте.",
+        "Формат: /set_paid <telegramId> <yes|no>",
+        "telegramId можно посмотреть в /participants.",
+        "Пример: /set_paid 123456789 yes"
+      ].join("\n")
+    );
     return;
   }
 
@@ -371,7 +481,7 @@ bot.command("set_paid", async (ctx) => {
     }
   });
 
-  await ctx.reply(`${user.displayName}: ${isPaid ? "оплачено" : "не оплачено"}`);
+  await ctx.reply(`${user.displayName}: взнос ${isPaid ? "отмечен" : "не отмечен"}`);
 });
 
 bot.command("prize", async (ctx) => {
@@ -385,7 +495,7 @@ bot.command("prize", async (ctx) => {
   await ctx.reply(
     [
       `Участников: ${prize.participantsCount}`,
-      `Оплачено: ${prize.paidParticipantsCount}`,
+      `Взнос отмечен в боте: ${prize.paidParticipantsCount}`,
       `Фонд: ${formatRub(prize.fundByParticipants)}`,
       ...prize.distribution.map((item) => `${item.title}: ${formatRub(item.amount)}`)
     ].join("\n")
@@ -423,3 +533,50 @@ void bot.launch().then(() => {
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
+
+// Reminders cron (runs every minute)
+setInterval(async () => {
+  try {
+    const now = new Date();
+    // Look for matches that are exactly 2 hours away (within a 1 minute window)
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const twoHoursAndOneMinute = new Date(now.getTime() + 2 * 60 * 60 * 1000 + 60 * 1000);
+
+    const matches = await prisma.match.findMany({
+      where: {
+        kickoffTime: {
+          gte: twoHoursFromNow,
+          lt: twoHoursAndOneMinute
+        },
+        status: "scheduled"
+      }
+    });
+
+    for (const match of matches) {
+      const users = await prisma.user.findMany({
+        include: {
+          predictions: {
+            where: { matchId: match.id }
+          }
+        }
+      });
+
+      const missingUsers = users.filter((u) => u.predictions.length === 0);
+      if (missingUsers.length > 0) {
+        const names = missingUsers.map((u) => u.displayName).join(", ");
+        const message = `Через 2 часа матч ${match.homeTeam} - ${match.awayTeam}, ещё не поставили: ${names}`;
+        
+        const admins = Array.from(getAdminTelegramIds());
+        for (const adminId of admins) {
+          try {
+            await bot.telegram.sendMessage(adminId, message);
+          } catch (err) {
+            console.error(`Failed to send reminder to admin ${adminId}`, err);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Reminder error", err);
+  }
+}, 60 * 1000);

@@ -1,52 +1,53 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Trophy } from "lucide-react";
+import { Nav } from "@/components/Nav";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Турнир прогнозов",
-  description: "Публичный dashboard дружеского турнира прогнозов на матчи чемпионата мира"
+  title: "Forecast Cup 26",
+  description: "Публичный dashboard дружеского турнира прогнозов на матчи чемпионата мира",
+  openGraph: {
+    title: "Forecast Cup 26",
+    description: "Публичный dashboard дружеского турнира прогнозов на матчи чемпионата мира",
+    siteName: "Forecast Cup 26",
+    locale: "ru_RU",
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Forecast Cup 26",
+    description: "Публичный dashboard дружеского турнира прогнозов на матчи чемпионата мира"
+  }
 };
-
-const nav = [
-  ["/", "Главная"],
-  ["/leaderboard", "Лидеры"],
-  ["/matches", "Матчи"],
-  ["/players", "Игроки"],
-  ["/stats", "Статистика"],
-  ["/rules", "Правила"]
-];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
-      <body>
-        <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[oklch(0.155_0.018_205/0.88)] backdrop-blur">
-          <nav className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-            <Link href="/" className="focus-ring flex items-center gap-3 rounded-sm">
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-[var(--green)] text-lg text-[var(--bg)]">
-                ⚽
-              </span>
-              <span>
-                <span className="block text-sm font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-                  World Cup
+      <body className="app-shell">
+        <AutoRefresh />
+        <header className="sticky top-0 z-20 border-b border-[var(--line-soft)] bg-[oklch(0.105_0.025_244/0.94)] backdrop-blur-md">
+          <nav className="flex flex-col gap-3 px-5 sm:flex-row sm:items-stretch sm:justify-between">
+            <div className="flex items-stretch gap-6">
+              <Link href="/" className="focus-ring flex items-center gap-3 border-r border-[var(--line-soft)] py-3 pr-6">
+                <span className="grid h-10 w-10 place-items-center rounded-md border border-[oklch(0.82_0.14_84/0.35)] bg-[oklch(0.82_0.14_84/0.14)] text-[var(--gold)]">
+                  <Trophy size={22} />
                 </span>
-                <span className="block text-lg font-semibold">Прогнозы друзей</span>
-              </span>
-            </Link>
-            <div className="flex flex-wrap gap-1">
-              {nav.map(([href, label]) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="focus-ring rounded-md px-3 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
-                >
-                  {label}
-                </Link>
-              ))}
+                <span>
+                  <span className="block text-base font-semibold text-[var(--text)]">
+                    WC 2026
+                  </span>
+                  <span className="block text-sm text-[var(--muted)]">
+                    Прогнозы
+                  </span>
+                </span>
+              </Link>
+              <Nav />
             </div>
           </nav>
         </header>
-        <main className="mx-auto max-w-7xl px-4 py-8 lg:px-8">{children}</main>
+        <main>{children}</main>
       </body>
     </html>
   );

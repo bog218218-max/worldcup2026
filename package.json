@@ -10,6 +10,9 @@
     "start": "next start",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-wc": "tsx prisma/seed-wc2026.ts",
+    "db:clear-demo": "tsx src/scripts/clear-demo-data.ts",
+    "smoke:hidden-predictions": "tsx src/scripts/smoke-hidden-predictions.ts",
     "test": "vitest run"
   },
   "dependencies": {

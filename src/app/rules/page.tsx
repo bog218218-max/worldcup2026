@@ -10,10 +10,10 @@ export default async function RulesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+        <p className="eyebrow text-[var(--gold)]">
           Правила MVP
         </p>
-        <h1 className="mt-2 text-4xl font-semibold">Правила турнира</h1>
+        <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Правила турнира</h1>
       </div>
 
       <section className="grid gap-4 sm:grid-cols-3">
@@ -23,7 +23,7 @@ export default async function RulesPage() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+        <div className="panel rounded-lg p-5">
           <h2 className="text-2xl font-semibold">Очки</h2>
           <ul className="mt-4 space-y-3 text-[var(--muted)]">
             <li>Точный счёт: 5 баллов.</li>
@@ -32,7 +32,7 @@ export default async function RulesPage() {
             <li>Исход не угадан: 0 баллов.</li>
           </ul>
         </div>
-        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+        <div className="panel rounded-lg p-5">
           <h2 className="text-2xl font-semibold">Дедлайн и видимость</h2>
           <ul className="mt-4 space-y-3 text-[var(--muted)]">
             <li>Прогноз можно менять до одной минуты перед началом матча.</li>
@@ -43,11 +43,11 @@ export default async function RulesPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+      <section className="panel rounded-lg p-5">
         <h2 className="text-2xl font-semibold">Призы</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {prizes.distribution.map((item) => (
-            <div key={item.id} className="rounded-md bg-[var(--surface-2)] p-4">
+            <div key={item.id} className="panel-muted rounded-md p-4">
               <p className="font-semibold">{item.title}</p>
               <p className="mt-1 text-sm text-[var(--muted)]">
                 {item.percentage ? `${item.percentage}%` : "фикс"}

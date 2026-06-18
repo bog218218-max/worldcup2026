@@ -4,6 +4,7 @@ dist
 coverage
 .env
 .env.local
+.env.production
 *.log
 *.tsbuildinfo
 prisma/dev.db

@@ -12,6 +12,7 @@ export async function getHomeDashboard() {
   ]);
 
   return {
+    leaderboard,
     leaderboardTop: leaderboard.slice(0, 3),
     leader: leaderboard[0] ?? null,
     upcomingMatches: matches
