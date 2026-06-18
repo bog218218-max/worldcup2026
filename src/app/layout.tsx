@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Trophy } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { TelegramCta } from "@/components/TelegramCta";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,11 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="app-shell">
         <AutoRefresh />
         <header className="sticky top-0 z-20 border-b border-[var(--line-soft)] bg-[oklch(0.105_0.025_244/0.94)] backdrop-blur-md">
-          <nav className="flex flex-col gap-3 px-5 sm:flex-row sm:items-stretch sm:justify-between">
-            <div className="flex items-stretch gap-6">
-              <Link href="/" className="focus-ring flex items-center gap-3 border-r border-[var(--line-soft)] py-3 pr-6">
-                <span className="grid h-10 w-10 place-items-center rounded-md border border-[oklch(0.82_0.14_84/0.35)] bg-[oklch(0.82_0.14_84/0.14)] text-[var(--gold)]">
-                  <Trophy size={22} />
+          <nav className="px-4 sm:px-5">
+            <div className="flex flex-col sm:flex-row sm:items-stretch sm:gap-6">
+              <Link href="/" className="focus-ring flex min-h-14 items-center gap-3 border-b border-[var(--line-soft)] py-3 sm:border-b-0 sm:border-r sm:pr-6">
+                <span className="h-10 w-10 shrink-0 overflow-hidden rounded-md border border-[var(--line-soft)] shadow-sm">
+                  <img src="/icon.png" alt="Logo" className="h-full w-full object-cover" />
                 </span>
                 <span>
                   <span className="block text-base font-semibold text-[var(--text)]">
@@ -43,7 +43,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </span>
                 </span>
               </Link>
-              <Nav />
+              <div className="flex flex-1 flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pb-0">
+                <Nav />
+                <div className="flex shrink-0 items-center gap-3">
+                  <TelegramCta compact />
+                </div>
+              </div>
             </div>
           </nav>
         </header>

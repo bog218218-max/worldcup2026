@@ -17,7 +17,7 @@ function formColor(points: number) {
 
 export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
   return (
-    <div className="panel overflow-x-auto rounded-lg">
+    <div className="panel overflow-hidden rounded-lg">
       <div className="hidden table-scroll md:block">
         <table className="data-table min-w-[980px]">
           <thead>
@@ -105,7 +105,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
           <Link
             key={row.userId}
             href={`/player/${row.slug}`}
-            className="focus-ring block p-4 transition-colors hover:bg-[var(--surface-2)]"
+            className="focus-ring block p-4 transition-colors hover:bg-[var(--surface-2)] sm:p-5"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
@@ -136,9 +136,14 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                       )}
                     </div>
                   </div>
-                  <p className="mt-1 text-sm text-[var(--muted)]">
+                  <p className="mt-1.5 text-[0.85rem] text-[var(--muted)]">
                     {row.exact} точных, {percent(row.outcomeAccuracy)} исходов
                   </p>
+                  {row.rank <= 3 ? (
+                    <span className="mt-2 inline-flex rounded-full border border-[oklch(0.79_0.115_86/0.48)] bg-[oklch(0.79_0.115_86/0.11)] px-2 py-1 text-xs font-semibold text-[var(--gold)]">
+                      призовая зона
+                    </span>
+                  ) : null}
                 </div>
               </div>
               <div className="text-right">
@@ -146,10 +151,10 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                 <p className="text-xs text-[var(--muted)]">очков</p>
               </div>
             </div>
-            <div className="mt-3 grid grid-cols-4 gap-2 text-center text-xs text-[var(--muted)]">
-              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Р {row.difference}</span>
-              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">И {row.outcome}</span>
-              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">П {row.miss}</span>
+            <div className="mt-4 grid grid-cols-4 gap-2 text-center text-[0.8rem] font-medium text-[var(--muted)]">
+              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Раз {row.difference}</span>
+              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Исх {row.outcome}</span>
+              <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Мимо {row.miss}</span>
               <span className="rounded-md bg-[var(--surface-2)] px-2 py-2">Ср {row.averagePoints.toFixed(1)}</span>
             </div>
           </Link>

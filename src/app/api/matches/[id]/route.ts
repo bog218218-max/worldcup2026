@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMatchStats } from "@/lib/services/matches";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 15;
 
 export async function GET(
   _request: Request,

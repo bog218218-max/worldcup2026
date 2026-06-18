@@ -21,7 +21,7 @@ export function Nav() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-wrap items-stretch gap-1 sm:gap-5">
+    <div className="mobile-scroll -mx-4 flex items-stretch gap-1 px-4 sm:mx-0 sm:gap-5 sm:px-0">
       {nav.map(([href, label]) => {
         const active = isActive(pathname, href);
 
@@ -31,7 +31,7 @@ export function Nav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={clsx(
-              "focus-ring relative flex items-center px-3 py-3 text-sm font-semibold transition-colors duration-150 sm:px-2",
+              "focus-ring relative flex min-h-11 shrink-0 items-center px-3 py-3 text-sm font-semibold transition-colors duration-150 sm:px-2",
               active
                 ? "text-[var(--text)] after:absolute after:inset-x-1 after:bottom-0 after:h-0.5 after:bg-[var(--gold)]"
                 : "text-[var(--muted)] hover:text-[var(--text)]"

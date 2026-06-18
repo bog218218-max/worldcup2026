@@ -1,17 +1,23 @@
 import { prisma } from "@/lib/prisma";
+import { buildCumulativeProgress } from "@/lib/analytics";
 import { getLeaderboard } from "@/lib/services/leaderboard";
 
 export async function getTournamentStats() {
   const [leaderboard, predictions, matches] = await Promise.all([
     getLeaderboard(),
     prisma.prediction.findMany({
+      where: { user: { isPaid: true } },
       include: {
         match: true,
         user: { select: { id: true, displayName: true, slug: true, avatarEmoji: true, avatarUrl: true, telegramUsername: true } }
       }
     }),
     prisma.match.findMany({
-      include: { predictions: true },
+      include: {
+        predictions: {
+          where: { user: { isPaid: true } }
+        }
+      },
       orderBy: { kickoffTime: "asc" }
     })
   ]);
@@ -45,19 +51,7 @@ export async function getTournamentStats() {
     })
     .sort((a, b) => b.averagePoints - a.averagePoints);
 
-  const progress = matches
-    .filter((match) => match.status === "finished")
-    .map((match) => {
-      const pointByUser = new Map<string, number>();
-      for (const prediction of predictions.filter((item) => item.matchId === match.id)) {
-        pointByUser.set(prediction.user.displayName, prediction.points);
-      }
-
-      return {
-        match: `${match.homeTeam} - ${match.awayTeam}`,
-        ...Object.fromEntries(pointByUser.entries())
-      };
-    });
+  const progress = buildCumulativeProgress(leaderboard, matches, predictions);
 
   return {
     totalPredictions: predictions.length,

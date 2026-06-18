@@ -8,6 +8,8 @@ function row(partial: Partial<Omit<LeaderboardRow, "rank">>) {
     displayName: partial.displayName ?? "Player",
     slug: partial.slug ?? "player",
     avatarEmoji: "⚽",
+    avatarUrl: null,
+    telegramUsername: null,
     isPaid: true,
     points: 0,
     predictionsCount: 4,

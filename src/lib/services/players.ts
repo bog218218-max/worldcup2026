@@ -36,6 +36,26 @@ function calculateCurrentPointStreak(
   return streak;
 }
 
+function calculateCurrentStreak(
+  predictions: Array<{ points: number; match: { kickoffTime: Date } }>
+) {
+  const sorted = [...predictions].sort(
+    (a, b) => b.match.kickoffTime.getTime() - a.match.kickoffTime.getTime()
+  );
+  if (sorted.length === 0) return { type: "none" as const, length: 0 };
+
+  const type = sorted[0].points > 0 ? "points" : "miss";
+  let length = 0;
+
+  for (const prediction of sorted) {
+    if (type === "points" && prediction.points <= 0) break;
+    if (type === "miss" && prediction.points > 0) break;
+    length += 1;
+  }
+
+  return { type, length };
+}
+
 function badgeNames(player: {
   exact: number;
   exactAccuracy: number;
@@ -76,14 +96,15 @@ export async function getPlayerStats(slug: string) {
     })
   ]);
 
-  if (!user) return null;
+  if (!user?.isPaid) return null;
 
   const row = leaderboard.find((item) => item.userId === user.id);
   const visiblePredictions = user.predictions.filter((prediction) =>
     isPredictionVisible(prediction.match.kickoffTime)
   );
   const scored = visiblePredictions.filter(
-    (prediction) => prediction.resultType !== "pending"
+    (prediction) =>
+      prediction.match.status === "finished" && prediction.resultType !== "pending"
   );
   const bestGame = scored
     .slice()
@@ -94,7 +115,9 @@ export async function getPlayerStats(slug: string) {
   return {
     ...row,
     badges: badgeNames({ ...row, predictions: visiblePredictions }),
+    primaryBadge: badgeNames({ ...row, predictions: visiblePredictions })[0] ?? null,
     currentPointStreak: calculateCurrentPointStreak(scored),
+    currentStreak: calculateCurrentStreak(scored),
     bestGame: bestGame
       ? {
           matchId: bestGame.matchId,
@@ -102,8 +125,26 @@ export async function getPlayerStats(slug: string) {
           awayTeam: bestGame.match.awayTeam,
           points: bestGame.points,
           resultType: bestGame.resultType
-        }
+      }
       : null,
+    timeline: scored
+      .slice()
+      .sort((a, b) => a.match.kickoffTime.getTime() - b.match.kickoffTime.getTime())
+      .reduce<Array<{
+        match: string;
+        matchId: string;
+        points: number;
+        cumulativePoints: number;
+      }>>((items, prediction) => {
+        const previous = items.at(-1)?.cumulativePoints ?? 0;
+        items.push({
+          match: `${prediction.match.homeTeam} - ${prediction.match.awayTeam}`,
+          matchId: prediction.matchId,
+          points: prediction.points,
+          cumulativePoints: previous + prediction.points
+        });
+        return items;
+      }, []),
     history: visiblePredictions.map((prediction) => ({
       id: prediction.id,
       matchId: prediction.matchId,

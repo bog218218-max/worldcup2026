@@ -64,7 +64,7 @@ export function ProgressChart({ data }: { data: Array<Record<string, string | nu
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <CartesianGrid stroke="oklch(0.295 0.015 163)" strokeDasharray="3 3" />
-          <XAxis dataKey="match" stroke="oklch(0.705 0.019 165)" />
+          <XAxis dataKey="match" stroke="oklch(0.705 0.019 165)" tick={false} />
           <YAxis stroke="oklch(0.705 0.019 165)" allowDecimals={false} />
           <Tooltip
             contentStyle={{
@@ -85,6 +85,40 @@ export function ProgressChart({ data }: { data: Array<Record<string, string | nu
               dot={false}
             />
           ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function PlayerTimelineChart({
+  data
+}: {
+  data: Array<{ match: string; points: number; cumulativePoints: number }>;
+}) {
+  return (
+    <div className="panel h-80 rounded-lg p-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid stroke="oklch(0.295 0.015 163)" strokeDasharray="3 3" />
+          <XAxis dataKey="match" stroke="oklch(0.705 0.019 165)" tick={false} />
+          <YAxis stroke="oklch(0.705 0.019 165)" allowDecimals={false} />
+          <Tooltip
+            contentStyle={{
+              background: "oklch(0.205 0.015 163)",
+              border: "1px solid oklch(0.355 0.018 163)",
+              borderRadius: 8
+            }}
+          />
+          <Line
+            type="monotone"
+            dataKey="cumulativePoints"
+            name="Очки"
+            isAnimationActive={false}
+            stroke="var(--green)"
+            strokeWidth={2}
+            dot={{ r: 3, fill: "var(--green)" }}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

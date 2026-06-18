@@ -1,0 +1,347 @@
+.fantasy-card-wrapper {
+  --cw: 280px;
+  width: var(--cw);
+  height: calc(var(--cw) * 1.55);
+  perspective: calc(var(--cw) * 4);
+  -webkit-perspective: calc(var(--cw) * 4);
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  border-radius: calc(var(--cw) * 0.05);
+  transition: transform 0.2s var(--ease-out);
+  transform: translateZ(0);
+}
+
+.fantasy-card-inner {
+  position: relative;
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.fantasy-card-wrapper.flipped .fantasy-card-inner {
+  transform: rotateY(180deg) translateZ(0);
+}
+
+.fantasy-front,
+.fantasy-back {
+  position: absolute;
+  width: 100%; height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: calc(var(--cw) * 0.05);
+  overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  background: var(--bg);
+  box-shadow: 0 18px 40px var(--shadow);
+  transition: box-shadow 0.3s var(--ease-out), filter 0.3s;
+}
+
+@media (hover: hover) {
+  .fantasy-card-wrapper:hover {
+    transform: translateY(-4px) translateZ(0);
+  }
+  .fantasy-card-wrapper:hover .fantasy-front,
+  .fantasy-card-wrapper:hover .fantasy-back {
+    box-shadow: 0 24px 60px var(--shadow), 0 0 0 1px oklch(0.74 0.145 148 / 0.42);
+    filter: brightness(1.05);
+  }
+}
+
+.fantasy-back { 
+  transform: rotateY(180deg) translateZ(0); 
+  -webkit-transform: rotateY(180deg) translateZ(0);
+  display: flex; flex-direction: column; align-items: center;
+  padding: calc(var(--cw) * 0.08);
+  background: linear-gradient(180deg, oklch(0.235 0.045 244 / 0.96), oklch(0.17 0.034 244 / 0.96));
+  border: 1px solid var(--line);
+}
+
+/* 
+  Tiers styles for the complex borders and glowing. 
+  We use multiple box-shadows and inner borders to replicate the reference's thick outer frame + thin inner frame.
+*/
+.tier-legend .fantasy-front, .tier-legend .fantasy-back {
+  background: linear-gradient(180deg, #1f1f1f, #0a0a0a);
+  border: 2px solid #bfa054; /* Gold-ish thick outer */
+  box-shadow: inset 0 0 0 2px #000, inset 0 0 0 3px rgba(255,255,255,0.4), 0 10px 40px rgba(191,160,84,0.15);
+}
+.tier-legend .fantasy-bottom-gradient {
+  background: linear-gradient(0deg, #bfa054 0%, transparent 100%);
+  opacity: 0.8;
+}
+
+.tier-gold .fantasy-front, .tier-gold .fantasy-back {
+  background: linear-gradient(180deg, #1c1a16, #090807);
+  border: 2px solid #d4af37; 
+  box-shadow: inset 0 0 0 2px #000, inset 0 0 0 3px rgba(212,175,55,0.4), 0 10px 40px rgba(212,175,55,0.1);
+}
+.tier-gold .fantasy-bottom-gradient {
+  background: linear-gradient(0deg, #403010 0%, transparent 100%);
+}
+
+.tier-silver .fantasy-front, .tier-silver .fantasy-back {
+  background: linear-gradient(180deg, #1f2228, #0a0b0d);
+  border: 2px solid #a0a5b0;
+  box-shadow: inset 0 0 0 2px #000, inset 0 0 0 3px rgba(160,165,176,0.3), 0 10px 40px rgba(160,165,176,0.1);
+}
+.tier-silver .fantasy-bottom-gradient {
+  background: linear-gradient(0deg, #1a202c 0%, transparent 100%);
+}
+
+.tier-bronze .fantasy-front, .tier-bronze .fantasy-back {
+  background: linear-gradient(180deg, #1f1812, #0a0806);
+  border: 2px solid #cd7f32;
+  box-shadow: inset 0 0 0 2px #000, inset 0 0 0 3px rgba(205,127,50,0.3), 0 10px 40px rgba(205,127,50,0.1);
+}
+.tier-bronze .fantasy-bottom-gradient {
+  background: linear-gradient(0deg, #3d2314 0%, transparent 100%);
+}
+
+/* Animations for top tier */
+@keyframes glow-pulse-legend {
+  0%, 100% { box-shadow: inset 0 0 0 2px #000, inset 0 0 0 3px rgba(255,255,255,0.4), 0 0 20px rgba(191,160,84,0.3); }
+  50%      { box-shadow: inset 0 0 0 2px #000, inset 0 0 0 3px rgba(255,255,255,0.8), 0 0 40px rgba(191,160,84,0.6); }
+}
+.fantasy-card-wrapper.glow-legend .fantasy-front,
+.fantasy-card-wrapper.glow-legend .fantasy-back { animation: glow-pulse-legend 3s infinite; }
+
+/* Image section taking top 55-60% */
+.fantasy-image-wrapper {
+  position: absolute;
+  top: 4px; left: 4px; right: 4px;
+  height: 58%;
+  z-index: 1;
+  background: #111;
+  border-top-left-radius: calc(var(--cw) * 0.04);
+  border-top-right-radius: calc(var(--cw) * 0.04);
+  overflow: hidden;
+}
+
+.fantasy-image-wrapper img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Gradient masking for the bottom of the image */
+.fantasy-image-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, var(--bg) 95%, var(--bg) 100%);
+  z-index: 2;
+}
+
+/* Extra gradient from bottom for tiers */
+.fantasy-bottom-gradient {
+  position: absolute;
+  bottom: 4px; left: 4px; right: 4px;
+  height: 40%;
+  z-index: 1;
+  pointer-events: none;
+  border-bottom-left-radius: calc(var(--cw) * 0.04);
+  border-bottom-right-radius: calc(var(--cw) * 0.04);
+}
+
+/* Typography on front */
+.fantasy-front-content {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.fantasy-top-left {
+  position: absolute;
+  top: calc(var(--cw) * 0.06);
+  left: calc(var(--cw) * 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5);
+}
+
+.fantasy-overall {
+  font-size: calc(var(--cw) * 0.18);
+  font-weight: 900;
+  line-height: 0.85;
+  color: #fff;
+  letter-spacing: -0.05em;
+}
+
+.fantasy-pos {
+  font-size: calc(var(--cw) * 0.045);
+  font-weight: 700;
+  color: #fff;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+
+.fantasy-suit {
+  font-size: calc(var(--cw) * 0.04);
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+.fantasy-bottom-info {
+  margin-top: auto;
+  padding: 0 calc(var(--cw) * 0.08) calc(var(--cw) * 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fantasy-name {
+  font-size: calc(var(--cw) * 0.055);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fff;
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  padding-bottom: calc(var(--cw) * 0.02);
+  margin-bottom: calc(var(--cw) * 0.03);
+}
+
+.fantasy-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  gap: calc(var(--cw) * 0.015) 0;
+}
+
+.fantasy-stats-col {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--cw) * 0.01);
+}
+
+.fantasy-stats-col.left-col {
+  align-items: flex-end;
+  padding-right: calc(var(--cw) * 0.05);
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+.fantasy-stats-col.right-col {
+  align-items: flex-start;
+  padding-left: calc(var(--cw) * 0.05);
+}
+
+.fantasy-stat-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.fantasy-stat-val {
+  font-size: calc(var(--cw) * 0.065);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.fantasy-stat-lbl {
+  font-size: calc(var(--cw) * 0.03);
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.fantasy-pill {
+  margin-top: calc(var(--cw) * 0.04);
+  padding: calc(var(--cw) * 0.015) calc(var(--cw) * 0.06);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.3);
+  font-size: calc(var(--cw) * 0.035);
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Empty avatar placeholder */
+.fantasy-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--cw) * 0.3);
+  font-weight: 700;
+  color: rgba(255,255,255,0.2);
+  background: linear-gradient(180deg, #333, #111);
+}
+
+/* Back Side Content */
+.fantasy-back-name {
+  font-size: calc(var(--cw) * 0.055); font-weight: 700;
+  text-transform: uppercase; margin-top: calc(var(--cw) * 0.02);
+  z-index: 1; text-align: center; color: var(--text);
+}
+.fantasy-back-nick {
+  font-size: calc(var(--cw) * 0.045); color: var(--gold);
+  margin-bottom: 0.5rem; z-index: 1; font-weight: 600;
+}
+
+.fantasy-back-stats {
+  width: 100%; display: flex; flex-direction: column; gap: calc(var(--cw) * 0.02);
+  z-index: 1; margin-top: auto; margin-bottom: auto;
+}
+.fbs-row { 
+  display: flex; align-items: center; justify-content: space-between; 
+  font-size: calc(var(--cw) * 0.042); 
+}
+.fbs-lbl { font-weight: 500; color: var(--subtle); }
+.fbs-val { font-weight: 700; color: var(--text); }
+
+.fbs-row.pts-row {
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+.fbs-row.pts-row .fbs-lbl,
+.fbs-row.pts-row .fbs-val {
+  color: var(--green);
+}
+.fbs-row.pts-row .fbs-val {
+  font-size: calc(var(--cw) * 0.055);
+}
+
+.fantasy-back-link {
+  margin-top: auto;
+  padding: calc(var(--cw) * 0.02) calc(var(--cw) * 0.08);
+  border-radius: calc(var(--cw) * 0.08);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  text-decoration: none;
+  font-size: calc(var(--cw) * 0.045);
+  font-weight: 600;
+  z-index: 10;
+  transition: all 0.2s var(--ease-out);
+  pointer-events: auto;
+}
+.fantasy-back-link:hover {
+  background: var(--surface-3);
+  border-color: var(--gold);
+  color: var(--gold);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 575px) {
+  .fantasy-card-wrapper {
+    --cw: calc((100vw - 32px) / 2);
+  }
+}

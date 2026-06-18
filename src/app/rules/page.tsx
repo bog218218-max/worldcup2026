@@ -1,14 +1,15 @@
+import { ClosedTournamentNotice } from "@/components/ClosedTournamentNotice";
 import { StatCard } from "@/components/StatCard";
 import { getPrizeOverview } from "@/lib/services/prizes";
 import { formatRub } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 15;
 
 export default async function RulesPage() {
   const prizes = await getPrizeOverview();
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell space-y-6">
       <div>
         <p className="eyebrow text-[var(--gold)]">
           Правила MVP
@@ -16,7 +17,9 @@ export default async function RulesPage() {
         <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Правила турнира</h1>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <ClosedTournamentNotice />
+
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard label="Взнос" value={formatRub(prizes.entryFee)} />
         <StatCard label="Участников" value={prizes.participantsCount} tone="cyan" />
         <StatCard label="Фонд" value={formatRub(prizes.fundByParticipants)} tone="gold" />

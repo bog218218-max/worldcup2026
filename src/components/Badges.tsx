@@ -6,7 +6,7 @@ const toneClasses = {
   outcome: "border-[oklch(0.69_0.095_218/0.42)] bg-[oklch(0.69_0.095_218/0.09)] text-[var(--cyan)]",
   miss: "border-[oklch(0.66_0.145_28/0.44)] bg-[oklch(0.66_0.145_28/0.1)] text-[var(--red)]",
   pending: "border-[var(--line-soft)] bg-[var(--surface-2)] text-[var(--muted)]",
-  live: "border-[oklch(0.66_0.145_28/0.5)] bg-[oklch(0.66_0.145_28/0.1)] text-[var(--red)]",
+  live: "border-[oklch(0.66_0.145_28/0.5)] bg-[oklch(0.66_0.145_28/0.1)] text-[var(--red)] animate-pulse",
   prize: "border-[oklch(0.79_0.115_86/0.48)] bg-[oklch(0.79_0.115_86/0.11)] text-[var(--gold)]"
 };
 

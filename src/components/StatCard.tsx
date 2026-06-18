@@ -17,7 +17,7 @@ const toneClass = {
 
 export function StatCard({ label, value, hint, tone = "default" }: StatCardProps) {
   return (
-    <section className="panel-muted rounded-lg p-4">
+    <section className="panel-muted min-w-0 rounded-lg p-4">
       <p className="eyebrow">
         {label}
       </p>

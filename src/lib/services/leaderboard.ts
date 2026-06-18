@@ -32,6 +32,7 @@ export function rankLeaderboardRows<T extends Omit<LeaderboardRow, "rank" | "ran
 
 export async function getLeaderboard(): Promise<LeaderboardRow[]> {
   const users = await prisma.user.findMany({
+    where: { isPaid: true },
     orderBy: { displayName: "asc" },
     include: {
       predictions: {
